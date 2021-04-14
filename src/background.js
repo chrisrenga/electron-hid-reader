@@ -7,8 +7,8 @@ const isDevelopment = process.env.NODE_ENV !== 'production'
 import { autoUpdater } from "electron-updater"
 
 // If you want to use Sentry for your error reporting, add your Sentry DSN configuration here.
-// import * as Sentry from '@sentry/electron';
-// Sentry.init({ dsn: 'your-dsn-url' });
+import * as Sentry from '@sentry/electron';
+Sentry.init({ dsn: "https://5850a8985d82487c9f2267fc830502a0@o571790.ingest.sentry.io/5720454" });
 
 
 // Keep a global reference of the window object, if you don't, the window will

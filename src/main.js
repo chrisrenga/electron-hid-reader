@@ -2,8 +2,8 @@ import Vue from 'vue'
 import App from './App.vue'
 
 // If you want to use Sentry for your error reporting, add your Sentry DSN configuration here.
-// import * as Sentry from '@sentry/electron';
-// Sentry.init({ dsn: 'your-dsn-url' });
+import * as Sentry from '@sentry/electron';
+Sentry.init({ dsn: "https://5850a8985d82487c9f2267fc830502a0@o571790.ingest.sentry.io/5720454" });
 
 const Storage = require('electron-store');
 
