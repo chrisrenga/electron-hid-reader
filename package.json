@@ -8,7 +8,7 @@
   },
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "yarn rebuild && vue-cli-service build",
+    "build": "electron-rebuild && vue-cli-service build",
     "lint": "vue-cli-service lint",
     "publish:osx": "yarn electron:build -p always",
     "publish:win": "yarn electron:build -- --win  --x64 --ia32 -p always",
@@ -26,7 +26,7 @@
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
     "rebuild": "electron-rebuild",
-    "install": "yarn electron-rebuild --runtime=electron --target=8.4.0 --arch=linux"
+    "install": "yarn electron-rebuild --runtime=electron --target=8.4.0"
   },
   "main": "background.js",
   "dependencies": {
