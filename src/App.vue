@@ -1,14 +1,15 @@
 <template>
   <div class="h-full w-full flex flex-col">
-    <Licensing
+    <!-- <Licensing
       v-if="! hasValidLicense"
-    />
+    /> -->
     <HelloWorld msg="Devices"/>
 
+    <div v-html="serials"></div>
     <div v-html="output"></div>
 
     <div class="space-y-4">
-      <div @click="pick(device)" v-for="device in devices" :key="device.productId" class="p-4 cursor-pointer hover:bg-gray-200">
+      <div @click="pick(device)" v-for="(device, index) in devices" :key="index" class="p-4 cursor-pointer hover:bg-gray-200">
           <div><strong>Vendor ID:</strong>{{device.vendorId}}</div>
           <div><strong>productId: </strong>{{device.productId}}</div>
           <div><strong>usagePage: </strong>{{device.usagePage}}</div>
@@ -27,7 +28,9 @@
 import HelloWorld from './components/HelloWorld.vue'
 // import Licensing from './components/Licensing';
 // import licenseCheck from './mixins/licensing';
-// import HID from 'node-hid';
+import HID from 'node-hid';
+
+import SerialPort from 'serialport'
 
 export default {
   name: 'App',
@@ -43,26 +46,49 @@ export default {
     return {
       devices: [],
       device: null,
-      output: null
+      output: null,
+      serials: null,
     }
   },
 
   mounted() {
-    // this.devices = HID.devices()
+    this.devices = HID.devices()
+    this.getPorts()
   },
 
   methods: {
     pick(device) {
       console.log(device.product)
-      // this.device = new HID.HID( device.path );
+      this.device = new HID.HID( device.path );
 
-      // // this.output = this.device.getFeatureReport()
-      // this.device.on('data', (data) => {
-      //   console.log(data)
-      //   this.output = data
-      // })
+      // this.output = this.device.getFeatureReport()
+      this.device.on('data', (data) => {
+        console.log(data)
+        this.output = data
+      })
     },
 
+
+    async getPorts() {
+      await SerialPort.list().then((ports, err) => {
+          if(err) {
+            this.serials = err.message
+            return
+          } else {
+            this.serials = ''
+          }
+          console.log('ports', ports);
+
+          if (ports.length === 0) {
+            this.serials = 'No ports discovered'
+          }
+
+          // tableHTML = tableify(ports)
+          // document.getElementById('ports').innerHTML = tableHTML
+
+          this.serials = ports
+        })
+    },
 
   }
 }

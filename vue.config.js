@@ -4,6 +4,7 @@ module.exports = {
     },
     pluginOptions: {
         electronBuilder: {
+            externals: ['serialport', 'node-hid'],
             nodeIntegration: true,
             builderOptions: {
                 mac: {
