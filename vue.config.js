@@ -17,12 +17,12 @@ module.exports = {
                 publish: ['github'],
                 appId: 'hid-devices.com',
                 afterSign: './afterSignHook.js',
-                win: {
-                    target: "portable",
-                },
-                portable: {
-                    artifactName: "tria_polling_portable.exe"
-                }
+                // win: {
+                //     target: "portable",
+                // },
+                // portable: {
+                //     artifactName: "tria_polling_portable.exe"
+                // }
             }
         }
     }
