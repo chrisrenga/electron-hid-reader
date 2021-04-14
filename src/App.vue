@@ -27,7 +27,7 @@
 import HelloWorld from './components/HelloWorld.vue'
 // import Licensing from './components/Licensing';
 // import licenseCheck from './mixins/licensing';
-import HID from 'node-hid';
+// import HID from 'node-hid';
 
 export default {
   name: 'App',
@@ -48,19 +48,19 @@ export default {
   },
 
   mounted() {
-    this.devices = HID.devices()
+    // this.devices = HID.devices()
   },
 
   methods: {
     pick(device) {
       console.log(device.product)
-      this.device = new HID.HID( device.path );
+      // this.device = new HID.HID( device.path );
 
-      // this.output = this.device.getFeatureReport()
-      this.device.on('data', (data) => {
-        console.log(data)
-        this.output = data
-      })
+      // // this.output = this.device.getFeatureReport()
+      // this.device.on('data', (data) => {
+      //   console.log(data)
+      //   this.output = data
+      // })
     },
 
 
