@@ -1,7 +1,7 @@
 # Desktop apps with Electron boilerplate
 
 Thank you for buying the Desktop apps with Electron premium package.
-This boilerplate is going to kickstart your next Electron app idea. 
+This boilerplate is going to kickstart your next Electron app idea.
 
 It includes a ton of useful features out of the box:
 
@@ -44,7 +44,7 @@ This will enable hot-reloading in your background- and renderer threads.
 
 ## Licensing
 
-You can generate a new public and private keypair using: 
+You can generate a new public and private keypair using:
 
 ```
 yarn electron:keypair
@@ -54,7 +54,7 @@ The private key file is **not** under version control, so you should keep it saf
 
 ### Generate keys
 
-You can manually generate license keys using: 
+You can manually generate license keys using:
 
 ```
 yarn electron:license
@@ -62,10 +62,13 @@ yarn electron:license
 
 ## App Icon
 
-You can change the default app icon, by placing a 1024x1024 pixel image inside the `appIcon` folder called `icon.png`. 
+You can change the default app icon, by placing a 1024x1024 pixel image inside the `appIcon` folder called `icon.png`.
 
 To regenerate your app icon, call:
 
 ```
 yarn electron:icon
 ```
+
+git tag v0.2.5
+git push && git push --tags

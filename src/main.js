@@ -14,8 +14,9 @@ window.mainStorage = new Storage({
     watch: true,
     defaults: {
         email: '',
-        licenseKey: ''
-    }
+        licenseKey: '',
+        eventLogs: [],
+    },
 });
 
 Vue.config.productionTip = false
