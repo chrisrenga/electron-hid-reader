@@ -1,10 +1,13 @@
 module.exports = {
     configureWebpack: {
-        devtool: 'source-map'
+        devtool: 'source-map',
+        externals: {
+            fsevents: "require('fsevents')"
+        }
     },
     pluginOptions: {
         electronBuilder: {
-            externals: ['serialport', 'node-hid'],
+            externals: ['serialport', 'node-hid', 'escpos'],
             nodeIntegration: true,
             builderOptions: {
                 mac: {
