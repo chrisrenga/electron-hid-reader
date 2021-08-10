@@ -215,11 +215,11 @@ export default {
             token: 'CWMucJ7Ha2bKJVfmhFLD2KZbPddafdsgGFmJ5kvmvNXdbsS2c7AxGAyuhQGY2MfMZY8XsA',
           })
           .then(({data}) => {
-              this.log(data.message, data)
-              this.sendToPrinter(data)
+            this.log('Addebitato: ' + data.heeader, data)
+            this.sendToPrinter(data)
           })
           .catch(error => {
-            this.log(error.message, error, 'error')
+            this.log(error.response.data.errors.data.join(' '), error, 'error')
           })
     },
 
@@ -229,7 +229,7 @@ export default {
 
         if (networkDevice) {
           networkDevice.open((error) => {
-            if (error) return console.log('Stampante non connessa');
+            if (error) return this.log('Stampante non connessa');
 
             let printer = new escpos.Printer(networkDevice, {});
 
@@ -245,7 +245,7 @@ export default {
                 .cut()
                 .close();
 
-            console.log('printed');
+            this.log('Stampato: ' + data.header, data)
 
           });
         }
