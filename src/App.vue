@@ -12,11 +12,11 @@
           </div>
 
           <select
-            v-model="filter"
+            v-model="instanceFilter"
             class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 py-2 px-10 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
           >
             <option value="0"> tutti</option>
-            <option v-for="instance in instances" :key="instance.name" :value="instance.name">{{ instance.name }}</option>
+            <option v-for="instance in instances" :key="instance.id" :value="instance.id">{{ instance.name }}</option>
           </select>
 
           <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -43,8 +43,7 @@
 
       <div>
         <button
-          v-if="isAdmin"
-          @click.prevent="resetLog"
+          @click.prevent="resetEventLogs"
           class="text-gray-800 px-4 py-2 hover:bg-gray-400 rounded hover:text-gray-700 w-full"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
@@ -54,26 +53,12 @@
       </div>
 
       <div class="text-gray-500">
-        v.{{appVersion}}
+        v.{{ appVersion }}
       </div>
     </section>
 
-
-    <div v-for="(event, index) in filteredEvents" :key="index" :class="logColor(event)" class="border-b px-2 py-1 flex items-center">
-      <div class="text-gray-700 mr-4 text-xs w-26" :class="logColor(event)">
-        {{ event.date | formatDate }}
-      </div>
-
-      <div class="font-semibold text-xs mr-2 w-16">
-        {{ event.instance }}
-      </div>
-
-      <div class="flex-1 leading-none text-sm flex items-center">
-        <div class="uppercase mr-2 font-semibold" v-if="event.type === 'error'">
-          {{ event.type }}
-        </div>
-        {{ event.message }}
-      </div>
+    <div>
+      <event-item v-for="(event, index) in filteredEvents" :key="index" :event="event" />
     </div>
 
     <div v-if="!filteredEvents.length" class="italic p-4 flex items-center justify-center text-gray-500 h-full">
@@ -95,7 +80,7 @@
 </template>
 
 <script>
-// import HelloWorld from './components/HelloWorld.vue'
+import EventItem from './components/EventItem.vue'
 // import Licensing from './components/Licensing';
 // import licenseCheck from './mixins/licensing';
 // import HID from 'node-hid';
@@ -109,35 +94,11 @@ const isDevelopment = process.env.NODE_ENV !== 'production'
 
 export default {
   name: 'App',
-  filters: {
-    formatDate(timestamp) {
-      const monthNames = [
-        "Gennaio",
-        "Febbraio",
-        "Marzo",
-        "Aprile",
-        "Maggio",
-        "Giugno",
-        "Luglio",
-        "Agosto",
-        "Settembre",
-        "Ottobre",
-        "Novembre",
-        "Dicembre"
-      ];
-
-      let date = new Date(timestamp);
-
-      return ('00' + date.getDate()).slice(-2) + ' ' +
-        monthNames[date.getMonth()].slice(0, -4) + '. ' +
-        ('00' + date.getHours()).slice(-2) + ':' + ('00' + date.getMinutes()).slice(-2)
-    }
-  },
   mixins: [
     // licenseCheck
   ],
   components: {
-    // HelloWorld,
+    EventItem,
     // Licensing,
   },
 
@@ -149,11 +110,12 @@ export default {
       serials: null,
       client: null,
       appVersion: window.require('electron').remote.app.getVersion(),
-      filter: 0,
+      instanceFilter: 0,
       filter_types: [],
       isAdmin: false,
       instances: [
-        {name: 'Fango'}
+        {name: 'Fango', id: 'fango', printerIp: '192.168.1.156', readerIp: '192.168.1.210', },
+        {name: 'Inalazioni', id: 'inalazioni', printerIp: '192.168.1.98', readerIp: '192.168.1.205', },
       ],
       events: [],
     }
@@ -161,13 +123,13 @@ export default {
 
   computed: {
     filteredEvents() {
-      return this.events.filter(event => this.filter != 0 ? event.instance === this.filter : true)
+      return this.events.filter(event => this.instanceFilter != 0 ? event.instance.id === this.instanceFilter : true)
         .filter(event => this.filter_types.length ? this.filter_types.includes(event.type) : true)
     },
   },
 
   mounted() {
-    this.startClient()
+    this.startClients()
     this.startServer()
 
     this.events = mainStorage.get('eventLogs');
@@ -177,26 +139,36 @@ export default {
 
   methods: {
 
-    startClient() {
-      let vm = this;
-      this.client = new net.Socket();
-      // this.client.setEncoding('utf8');
-      this.client.connect(2001, '192.168.1.210', function() {
-        vm.log('Connesso')
-        //  this.client.write('Hello, server! Love, Client.');
-      });
+    resetEventLogs() {
+      mainStorage.set('eventLogs', [])
+    },
 
-      this.client.on('data', function(data) {
+    startClients() {
+      this.instances.forEach(instance => this.startClient(instance));
+    },
+
+    startClient(instance) {
+      let vm = this;
+      let client = new net.Socket();
+      // client.setEncoding('utf8');
+      client.connect(
+        2001,
+        instance.readerIp,
+        () => vm.log(instance, 'Connesso')
+        //  client.write('Hello, server! Love, Client.');
+      );
+
+      client.on('data', (data) => {
         let barcode = data.toString('utf8');
 
-        vm.log(`Lettura Barcode: ${barcode}`);
+        vm.log(instance, `Lettura Barcode: ${barcode}`);
 
-        vm.charge(barcode);
+        vm.charge(barcode, instance);
         // client.destroy(); // kill client after server's response
       });
 
-       this.client.on('close', function() {
-         vm.log(`Disconnesso`);
+      client.on('close', () => {
+        vm.log(instance, `Disconnesso`);
       });
     },
 
@@ -209,27 +181,24 @@ export default {
       server.listen(50710, '127.0.0.1');
     },
 
-    charge(barcode) {
-      axios.post((isDevelopment ? 'http://local.hldv.test' : 'https://local.hldv.it') + '/api/electron/card-reader/fango', {
+    charge(barcode, instance) {
+      axios.post((isDevelopment ? 'http://local.hldv.test' : 'https://local.hldv.it') + '/api/electron/card-reader/' + instance.id, {
             card: barcode.substring(1),
             token: 'CWMucJ7Ha2bKJVfmhFLD2KZbPddafdsgGFmJ5kvmvNXdbsS2c7AxGAyuhQGY2MfMZY8XsA',
           })
           .then(({data}) => {
-            this.log('Addebitato: ' + data.heeader, data)
-            this.sendToPrinter(data)
+            this.log(instance, 'Addebitato: ' + data.header, data, 'success')
+            this.sendToPrinter(data, instance)
           })
-          .catch(error => {
-            this.log(error.response.data.errors.data.join(' '), error, 'error')
-          })
+          .catch(error => this.log(instance, error.response.data.errors.data.join(' '), error, 'error'))
     },
 
-    sendToPrinter(data) {
-        // inalazioni .98
-        let networkDevice = new escpos.Network('192.168.1.156');
+    sendToPrinter(data, instance) {
+        let networkDevice = new escpos.Network(instance.printerIp);
 
         if (networkDevice) {
           networkDevice.open((error) => {
-            if (error) return this.log('Stampante non connessa');
+            if (error) return this.log(instance, 'Stampante non connessa', 'error');
 
             let printer = new escpos.Printer(networkDevice, {});
 
@@ -245,36 +214,16 @@ export default {
                 .cut()
                 .close();
 
-            this.log('Stampato: ' + data.header, data)
+            this.log(instance, 'Stampato: ' + data.header, data, 'success')
 
           });
         }
     },
 
-    log(message, data, type = 'success') {
+    log(instance, message, data, type = 'info') {
       var eventLogs = mainStorage.get('eventLogs', [])
-      eventLogs.push({data, message, type, date: new Date()})
+      eventLogs.push({instance, data, message, type, date: new Date()})
       mainStorage.set('eventLogs', eventLogs);
-    },
-
-    logColor(event) {
-      let color = '';
-
-      switch (event.type) {
-        case 'error':
-          color = 'text-red-800 bg-red-100';
-
-          break;
-        case 'info':
-          color = 'text-blue-800 bg-blue-100';
-
-          break;
-
-        default:
-          break;
-      }
-
-      return color;
     },
   }
 }
